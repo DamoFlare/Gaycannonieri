@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>⚽ Classifica Cannonieri</title>
+<meta name="description" content="Classifica marcatori e presenze del calcetto tra amici">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  .font-display { font-family: 'Oswald', sans-serif; }
+  ::-webkit-scrollbar { height: 6px; width: 6px; }
+  ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 999px; }
+  @keyframes pop { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .animate-pop { animation: pop 0.25s ease-out; }
+</style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen pb-16">
+
+<div id="app" class="max-w-3xl mx-auto px-3 sm:px-6">
+
+  <!-- HEADER -->
+  <header class="pt-6 pb-4 text-center">
+    <h1 class="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white flex items-center justify-center gap-2">
+      <span>⚽</span> Classifica Cannonieri
+    </h1>
+    <p class="text-slate-400 text-sm mt-1">Il calcetto del giovedì non perdona. Nemmeno le ginocchia.</p>
+  </header>
+
+  <!-- STATO CARICAMENTO / ERRORE -->
+  <div id="loading" class="text-center py-16 text-slate-400">
+    <i data-lucide="loader-circle" class="animate-spin inline-block mb-2" style="width:32px;height:32px"></i>
+    <p>Caricamento statistiche in corso...</p>
+  </div>
+
+  <div id="error" class="hidden text-center py-16 bg-red-950/40 border border-red-800 rounded-xl mt-4">
+    <i data-lucide="alert-triangle" class="inline-block mb-2 text-red-400" style="width:32px;height:32px"></i>
+    <p class="text-red-300 font-medium">Impossibile caricare data.json 😵</p>
+    <p class="text-red-400/70 text-sm mt-1">Controlla che il file esista e sia un JSON valido.</p>
+  </div>
+
+  <!-- CONTENUTO -->
+  <main id="content" class="hidden">
+
+    <!-- STAT CARDS -->
+    <section class="grid grid-cols-2 gap-3 mb-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+        <div class="flex items-center gap-2 text-slate-400 text-xs uppercase tracking-wide font-semibold">
+          <i data-lucide="target" style="width:14px;height:14px"></i> Gol totali
+        </div>
+        <div id="stat-gol-totali" class="font-display text-3xl font-bold text-white mt-1">0</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+        <div class="flex items-center gap-2 text-slate-400 text-xs uppercase tracking-wide font-semibold">
+          <i data-lucide="calendar-days" style="width:14px;height:14px"></i> Partite disputate
+        </div>
+        <div id="stat-partite-totali" class="font-display text-3xl font-bold text-white mt-1">0</div>
+      </div>
+      <div class="bg-gradient-to-br from-amber-500/20 to-amber-900/10 border border-amber-700/40 rounded-2xl p-4">
+        <div class="flex items-center gap-2 text-amber-400 text-xs uppercase tracking-wide font-semibold">
+          <i data-lucide="crown" style="width:14px;height:14px"></i> Re dei Bomber
+        </div>
+        <div id="stat-capocannoniere" class="font-display text-lg font-bold text-white mt-1 truncate">-</div>
+      </div>
+      <div class="bg-gradient-to-br from-slate-500/20 to-slate-800/10 border border-slate-600/40 rounded-2xl p-4">
+        <div class="flex items-center gap-2 text-slate-300 text-xs uppercase tracking-wide font-semibold">
+          <i data-lucide="footprints" style="width:14px;height:14px"></i> Scarparo d'Oro
+        </div>
+        <div id="stat-scarparo" class="font-display text-lg font-bold text-white mt-1 truncate">-</div>
+        <div class="text-[11px] text-slate-500 mt-0.5">Tante presenze, pochi gol. Rispetto.</div>
+      </div>
+    </section>
+
+    <!-- PODIO -->
+    <section class="mb-6">
+      <h2 class="font-display text-lg font-semibold text-slate-300 mb-3 flex items-center gap-2">
+        <i data-lucide="trophy" style="width:18px;height:18px" class="text-amber-400"></i> Podio Capocannonieri
+      </h2>
+      <div id="podio" class="grid grid-cols-3 gap-2 sm:gap-3 items-end"></div>
+    </section>
+
+    <!-- CONTROLLI: RICERCA + ORDINAMENTO -->
+    <section class="mb-4 space-y-3">
+      <div class="relative">
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" style="width:16px;height:16px"></i>
+        <input id="search" type="text" placeholder="Cerca un giocatore..."
+          class="w-full bg-slate-900 border border-slate-800 rounded-xl py-2.5 pl-9 pr-3 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-600">
+      </div>
+      <div class="flex gap-2 overflow-x-auto pb-1">
+        <button data-sort="gol" class="sort-btn shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-700 bg-emerald-600 text-white">
+          ⚽ Gol
+        </button>
+        <button data-sort="media" class="sort-btn shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-700 bg-slate-900 text-slate-300">
+          📊 Media Gol/Partita
+        </button>
+        <button data-sort="partite" class="sort-btn shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-700 bg-slate-900 text-slate-300">
+          🗓️ Presenze
+        </button>
+      </div>
+    </section>
+
+    <!-- LISTA GIOCATORI -->
+    <section id="lista" class="space-y-2.5"></section>
+
+    <p id="no-results" class="hidden text-center text-slate-500 text-sm py-10">
+      Nessun giocatore trovato. Forse è in infermeria. 🤕
+    </p>
+
+  </main>
+
+  <footer class="text-center text-slate-600 text-xs mt-10">
+    Dati aggiornati a mano da chi si ricorda di farlo. Contestazioni non accettate.
+  </footer>
+</div>
+
+<script>
+(function () {
+  let players = [];
+  let currentSort = 'gol';
+  let searchTerm = '';
+
+  const els = {
+    loading: document.getElementById('loading'),
+    error: document.getElementById('error'),
+    content: document.getElementById('content'),
+    statGolTotali: document.getElementById('stat-gol-totali'),
+    statPartiteTotali: document.getElementById('stat-partite-totali'),
+    statCapocannoniere: document.getElementById('stat-capocannoniere'),
+    statScarparo: document.getElementById('stat-scarparo'),
+    podio: document.getElementById('podio'),
+    lista: document.getElementById('lista'),
+    search: document.getElementById('search'),
+    noResults: document.getElementById('no-results'),
+    sortBtns: document.querySelectorAll('.sort-btn'),
+  };
+
+  function media(p) {
+    return p.partite > 0 ? p.gol / p.partite : 0;
+  }
+
+  function initials(nome) {
+    return nome.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  }
+
+  function badgesFor(p, ctx) {
+    const badges = [];
+    if (p.id === ctx.capocannoniere.id) badges.push({ label: 'Re dei Bomber', cls: 'bg-amber-500/20 text-amber-300 border-amber-600/40' });
+    if (p.id === ctx.scarparo.id) badges.push({ label: 'Scarparo d\'Oro', cls: 'bg-slate-500/20 text-slate-300 border-slate-500/40' });
+    if (p.id === ctx.piedeBanana.id && p.gol > 0) badges.push({ label: 'Piede a Banana', cls: 'bg-yellow-500/20 text-yellow-300 border-yellow-600/40' });
+    if (p.ammonizioni >= 4) badges.push({ label: 'Distorsione Facile', cls: 'bg-red-500/20 text-red-300 border-red-600/40' });
+    if (p.id === ctx.terzoTempo.id) badges.push({ label: 'Terzo Tempo MVP', cls: 'bg-purple-500/20 text-purple-300 border-purple-600/40' });
+    return badges;
+  }
+
+  function computeContext(list) {
+    const capocannoniere = list.reduce((a, b) => (b.gol > a.gol ? b : a), list[0]);
+    const minGol = Math.min(...list.map(p => p.gol));
+    const scarparo = list.filter(p => p.gol === minGol).reduce((a, b) => (b.partite > a.partite ? b : a), list.find(p => p.gol === minGol));
+    const piedeBanana = list.filter(p => p.gol > 0).reduce((a, b) => (media(b) > media(a) ? b : a), list.find(p => p.gol > 0) || list[0]);
+    const maxPartite = Math.max(...list.map(p => p.partite));
+    const terzoTempo = list.filter(p => p.partite === maxPartite).reduce((a, b) => (b.gol < a.gol ? b : a), list.find(p => p.partite === maxPartite));
+    return { capocannoniere, scarparo, piedeBanana, terzoTempo };
+  }
+
+  function renderStats(list) {
+    const golTotali = list.reduce((s, p) => s + p.gol, 0);
+    const partiteTotali = Math.max(...list.map(p => p.partite));
+    const ctx = computeContext(list);
+
+    els.statGolTotali.textContent = golTotali;
+    els.statPartiteTotali.textContent = partiteTotali;
+    els.statCapocannoniere.textContent = `${ctx.capocannoniere.nome} (${ctx.capocannoniere.gol})`;
+    els.statScarparo.textContent = `${ctx.scarparo.nome} (${ctx.scarparo.partite}p / ${ctx.scarparo.gol}g)`;
+
+    return ctx;
+  }
+
+  function renderPodio(list) {
+    const top3 = [...list].sort((a, b) => b.gol - a.gol).slice(0, 3);
+    const config = [
+      { pos: 1, emoji: '🥇', label: 'Scarpa d\'Oro', order: 2, ring: 'ring-amber-400', h: 'h-28 sm:h-32', bg: 'bg-gradient-to-b from-amber-500/25 to-slate-900' },
+      { pos: 2, emoji: '🥈', label: 'Argento', order: 1, ring: 'ring-slate-300', h: 'h-20 sm:h-24', bg: 'bg-gradient-to-b from-slate-400/20 to-slate-900' },
+      { pos: 3, emoji: '🥉', label: 'Bronzo', order: 3, ring: 'ring-orange-500', h: 'h-16 sm:h-20', bg: 'bg-gradient-to-b from-orange-600/20 to-slate-900' },
+    ];
+
+    els.podio.innerHTML = '';
+    config.forEach((c, i) => {
+      const p = top3[c.pos - 1];
+      const wrap = document.createElement('div');
+      wrap.style.order = c.order;
+      wrap.className = 'animate-pop';
+      if (!p) { wrap.innerHTML = ''; els.podio.appendChild(wrap); return; }
+      wrap.innerHTML = `
+        <div class="flex flex-col items-center">
+          <div class="text-2xl mb-1">${c.emoji}</div>
+          <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-800 ring-2 ${c.ring} flex items-center justify-center font-display font-bold text-lg mb-1.5 overflow-hidden">
+            ${p.foto ? `<img src="${p.foto}" class="w-full h-full object-cover" alt="${p.nome}">` : initials(p.nome)}
+          </div>
+          <div class="text-xs font-semibold text-center leading-tight truncate w-full px-1">${p.nome}</div>
+          <div class="text-[10px] text-slate-500 text-center truncate w-full px-1 mb-1.5">${p.soprannome}</div>
+          <div class="${c.bg} ${c.h} w-full rounded-t-lg flex items-start justify-center pt-1.5 border-t border-x border-slate-700/50">
+            <div class="text-center">
+              <div class="font-display font-bold text-white text-lg">${p.gol}</div>
+              <div class="text-[9px] text-slate-400 uppercase tracking-wide">gol</div>
+            </div>
+          </div>
+        </div>
+      `;
+      els.podio.appendChild(wrap);
+    });
+  }
+
+  function renderLista(list, ctx) {
+    let filtered = list.filter(p =>
+      p.nome.toLowerCase().includes(searchTerm) ||
+      (p.soprannome || '').toLowerCase().includes(searchTerm)
+    );
+
+    filtered.sort((a, b) => {
+      if (currentSort === 'gol') return b.gol - a.gol;
+      if (currentSort === 'media') return media(b) - media(a);
+      if (currentSort === 'partite') return b.partite - a.partite;
+      return 0;
+    });
+
+    els.lista.innerHTML = '';
+    els.noResults.classList.toggle('hidden', filtered.length > 0);
+
+    filtered.forEach((p, idx) => {
+      const rankInGol = [...list].sort((a, b) => b.gol - a.gol).findIndex(x => x.id === p.id) + 1;
+      const badges = badgesFor(p, ctx);
+      const card = document.createElement('div');
+      card.className = 'bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center gap-3 animate-pop';
+      card.innerHTML = `
+        <div class="w-8 text-center font-display font-bold text-slate-500 shrink-0">#${rankInGol}</div>
+        <div class="w-11 h-11 rounded-full bg-slate-800 flex items-center justify-center font-display font-bold text-sm shrink-0 overflow-hidden">
+          ${p.foto ? `<img src="${p.foto}" class="w-full h-full object-cover" alt="${p.nome}">` : initials(p.nome)}
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-semibold text-sm truncate">${p.nome}</span>
+          </div>
+          <div class="text-xs text-slate-500 truncate">${p.soprannome || ''}</div>
+          ${badges.length ? `<div class="flex flex-wrap gap-1 mt-1.5">
+            ${badges.map(b => `<span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${b.cls}">${b.label}</span>`).join('')}
+          </div>` : ''}
+        </div>
+        <div class="flex gap-3 sm:gap-4 shrink-0 text-center">
+          <div>
+            <div class="font-display font-bold text-emerald-400 text-lg leading-none">${p.gol}</div>
+            <div class="text-[9px] text-slate-500 uppercase mt-0.5">gol</div>
+          </div>
+          <div>
+            <div class="font-display font-bold text-white text-lg leading-none">${p.partite}</div>
+            <div class="text-[9px] text-slate-500 uppercase mt-0.5">pres.</div>
+          </div>
+          <div class="hidden sm:block">
+            <div class="font-display font-bold text-slate-300 text-lg leading-none">${media(p).toFixed(1)}</div>
+            <div class="text-[9px] text-slate-500 uppercase mt-0.5">media</div>
+          </div>
+          <div class="hidden sm:block">
+            <div class="font-display font-bold text-yellow-500 text-lg leading-none">${p.ammonizioni}</div>
+            <div class="text-[9px] text-slate-500 uppercase mt-0.5">amm.</div>
+          </div>
+        </div>
+      `;
+      els.lista.appendChild(card);
+    });
+
+    lucide.createIcons();
+  }
+
+  function render() {
+    const ctx = renderStats(players);
+    renderPodio(players);
+    renderLista(players, ctx);
+    lucide.createIcons();
+  }
+
+  els.search.addEventListener('input', (e) => {
+    searchTerm = e.target.value.trim().toLowerCase();
+    render();
+  });
+
+  els.sortBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentSort = btn.dataset.sort;
+      els.sortBtns.forEach(b => {
+        b.classList.remove('bg-emerald-600', 'text-white');
+        b.classList.add('bg-slate-900', 'text-slate-300');
+      });
+      btn.classList.add('bg-emerald-600', 'text-white');
+      btn.classList.remove('bg-slate-900', 'text-slate-300');
+      render();
+    });
+  });
+
+  fetch('data.json', { cache: 'no-store' })
+    .then(res => {
+      if (!res.ok) throw new Error('Network response not ok');
+      return res.json();
+    })
+    .then(data => {
+      if (!Array.isArray(data) || data.length === 0) throw new Error('Empty data');
+      players = data;
+      els.loading.classList.add('hidden');
+      els.content.classList.remove('hidden');
+      render();
+    })
+    .catch(() => {
+      els.loading.classList.add('hidden');
+      els.error.classList.remove('hidden');
+    });
+
+  lucide.createIcons();
+})();
+</script>
+
+</body>
+</html>
