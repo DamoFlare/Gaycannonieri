@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>⚽ Classifica Cannonieri</title>
+<title>⚽ Gaycannonieri</title>
 <meta name="description" content="Classifica marcatori e presenze del calcetto tra amici">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,9 +29,9 @@
   <!-- HEADER -->
   <header class="pt-6 pb-4 text-center">
     <h1 class="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white flex items-center justify-center gap-2">
-      <span>⚽</span> Classifica Cannonieri
+      <span>⚽</span> Gaycannonieri
     </h1>
-    <p class="text-slate-400 text-sm mt-1">Il calcetto del giovedì non perdona. Nemmeno le ginocchia.</p>
+    <p class="text-slate-400 text-sm mt-1">della Madonna dei Poveri che non è solo un luogo</p>
   </header>
 
   <!-- STATO CARICAMENTO / ERRORE -->
@@ -65,7 +65,7 @@
       </div>
       <div class="bg-gradient-to-br from-amber-500/20 to-amber-900/10 border border-amber-700/40 rounded-2xl p-4">
         <div class="flex items-center gap-2 text-amber-400 text-xs uppercase tracking-wide font-semibold">
-          <i data-lucide="crown" style="width:14px;height:14px"></i> Re dei Bomber
+          <i data-lucide="crown" style="width:14px;height:14px"></i> Supergay
         </div>
         <div id="stat-capocannoniere" class="font-display text-lg font-bold text-white mt-1 truncate">-</div>
       </div>
@@ -151,7 +151,7 @@
 
   function badgesFor(p, ctx) {
     const badges = [];
-    if (p.id === ctx.capocannoniere.id) badges.push({ label: 'Re dei Bomber', cls: 'bg-amber-500/20 text-amber-300 border-amber-600/40' });
+    if (p.id === ctx.capocannoniere.id) badges.push({ label: 'Supergay', cls: 'bg-amber-500/20 text-amber-300 border-amber-600/40' });
     if (p.id === ctx.scarparo.id) badges.push({ label: 'Scarparo d\'Oro', cls: 'bg-slate-500/20 text-slate-300 border-slate-500/40' });
     if (p.id === ctx.piedeBanana.id && p.gol > 0) badges.push({ label: 'Piede a Banana', cls: 'bg-yellow-500/20 text-yellow-300 border-yellow-600/40' });
     if (p.ammonizioni >= 4) badges.push({ label: 'Distorsione Facile', cls: 'bg-red-500/20 text-red-300 border-red-600/40' });

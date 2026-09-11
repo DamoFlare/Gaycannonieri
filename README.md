@@ -1,4 +1,4 @@
-# ⚽ Classifica Cannonieri Calcetto
+# ⚽ Gaycannonieri
 
 SPA leggera (HTML + Tailwind CDN + JS vanilla) per la classifica marcatori e presenze del calcetto tra amici, pubblicata su **GitHub Pages**. Nessuno step di build: il workflow copia semplicemente `index.html` e `data.json` nella cartella `public/`.
 
