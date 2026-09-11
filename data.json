@@ -106,5 +106,23 @@
     "partite": 1,
     "ammonizioni": 0,
     "foto": ""
+  },
+   {
+    "id": 14,
+    "nome": "Il fratello di Rocchino",
+    "soprannome": "Frank",
+    "gol": 2,
+    "partite": 1,
+    "ammonizioni": 0,
+    "foto": ""
+  },
+  {
+    "id": 15,
+    "nome": "Alex",
+    "soprannome": "",
+    "gol": 1,
+    "partite": 1,
+    "ammonizioni": 0,
+    "foto": ""
   }
 ]
